@@ -4,22 +4,42 @@ from keras import models
 import sys
 from PIL import Image
 #Load the saved model
+def nothing():
+    pass
 model = models.load_model('gestures_trained_cnn_model.h5')
 label=['Call','Good','Hi','ILY','Love','Nothing','NotOk','OK','Peace','Thankyou','You']
 # Start capturing Video through webcam
 video = cv2.VideoCapture(0)
+cv2.namedWindow('tracker')
+cv2.createTrackbar("L-H","tracker",0,179,nothing)    #L - lower U-upper limits
+cv2.createTrackbar("L-S","tracker",0,255,nothing)
+cv2.createTrackbar("L-V","tracker",0,255,nothing)
+cv2.createTrackbar("U-H","tracker",179,179,nothing)
+cv2.createTrackbar("U-S","tracker",255,255,nothing)
+cv2.createTrackbar("U-V","tracker",255,255,nothing)
 while True:
     _, frame = video.read()
     kernel = np.ones((3,3),np.uint8)
-    cv2.rectangle(frame,(30,230),(230,430),(0,255,0),2)
-    aoi=frame[230:430,30:230]
+    cv2.rectangle(frame,(10,250),(250,450),(0,255,0),2)
+    aoi=frame[250:450,10:250]
      
     hsv = cv2.cvtColor(aoi, cv2.COLOR_BGR2HSV)
 # define range of skin color in HSV
-    lower_skin = np.array([0,10,120], dtype=np.uint8)
-    upper_skin = np.array([179,120,255], dtype=np.uint8)
+    #lower_skin = np.array([0,10,120], dtype=np.uint8)
+    #upper_skin = np.array([179,120,255], dtype=np.uint8)
+
+    lh=cv2.getTrackbarPos('L-H','tracker')
+    ls=cv2.getTrackbarPos('L-S','tracker')
+    lv=cv2.getTrackbarPos('L-V','tracker')
+    uh=cv2.getTrackbarPos('U-H','tracker')
+    us=cv2.getTrackbarPos('U-S','tracker')
+    uv=cv2.getTrackbarPos('U-V','tracker')
+    lower_blue=np.array([lh,ls,lv])
+    upper_blue=np.array([uh,us,uv])
+
 #extract skin colur image
-    mask = cv2.inRange(hsv, lower_skin, upper_skin)
+    mask=cv2.inRange(hsv,lower_blue,upper_blue)
+    #mask = cv2.inRange(hsv, lower_skin, upper_skin)
 #extrapolate the hand to fill dark spots within
     #mask = cv2.dilate(mask,kernel,iterations = 4)
 #blur the image
@@ -38,6 +58,7 @@ while True:
     #print(prediction)
     print(np.take(label,(prediction.argmax(1)-1)))
     cv2.imshow("Capturing", frame)
+    cv2.imshow("masked", mask)
     key=cv2.waitKey(1)
     if key == ord('q'):
         break
