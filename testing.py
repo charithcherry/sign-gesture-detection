@@ -11,8 +11,10 @@ video = cv2.VideoCapture(0)
 while True:
     _, frame = video.read()
     kernel = np.ones((3,3),np.uint8)
+    cv2.rectangle(frame,(30,230),(230,430),(0,255,0),2)
+    aoi=frame[230:430,30:230]
      
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    hsv = cv2.cvtColor(aoi, cv2.COLOR_BGR2HSV)
 # define range of skin color in HSV
     lower_skin = np.array([0,10,120], dtype=np.uint8)
     upper_skin = np.array([179,120,255], dtype=np.uint8)
@@ -34,7 +36,7 @@ while True:
     #Calling the predict method on model to predict gesture in the frame
     prediction = model.predict(img_array_ex)
     #print(prediction)
-    print(np.take(label,prediction.argmax(1)))
+    print(np.take(label,(prediction.argmax(1)-1)))
     cv2.imshow("Capturing", frame)
     key=cv2.waitKey(1)
     if key == ord('q'):
